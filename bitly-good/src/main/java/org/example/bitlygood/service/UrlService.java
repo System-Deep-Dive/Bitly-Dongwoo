@@ -16,10 +16,10 @@ public class UrlService {
     @Transactional
     public String createShortUrl(String originalUrl) {
         Url url = new Url(originalUrl);
-        urlRepository.save(url);
+        Url savedUrl = urlRepository.save(url);
 
-        String shortUrl = base62.encode(url.getId());
-        url.setShortUrl(shortUrl);
+        String shortUrl = base62.encode(savedUrl.getId());
+        savedUrl.setShortUrl(shortUrl);
 
         return shortUrl;
     }

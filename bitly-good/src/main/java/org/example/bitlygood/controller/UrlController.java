@@ -26,4 +26,9 @@ public class UrlController {
         String originalUrl = urlService.getOriginalUrl(shortUrl);
         response.sendRedirect(originalUrl);
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Void> handleIllegalArgumentException() {
+        return ResponseEntity.notFound().build();
+    }
 }
