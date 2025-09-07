@@ -30,7 +30,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: '5'
           memory: '512M'
 
   prometheus:
@@ -42,6 +42,8 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
       - app
+      - node-exporter
+      - postgres-exporter
 
   grafana:
     image: grafana/grafana:8.5.2
@@ -52,3 +54,19 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=password
     depends_on:
       - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: bitly_index_node_exporter
+    ports:
+      - "9100:9100"
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.13.0
+    container_name: bitly_index_postgres_exporter
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://user:password@postgres:5432/bitly?sslmode=disable
+    depends_on:
+      - postgres

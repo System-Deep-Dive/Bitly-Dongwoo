@@ -15,7 +15,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: '5'
           memory: '512M'
 
   postgres:
@@ -27,11 +27,14 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
+    volumes:
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres_data:/var/lib/postgresql/data
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: '512M'
+          cpus: '2'
+          memory: '1024M'
 
   prometheus:
     image: prom/prometheus:v2.37.0
@@ -39,16 +42,56 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
       - app
+      - node-exporter
+      - postgres-exporter
+    networks:
+      - bitly-baseline-network
 
   grafana:
     image: grafana/grafana:8.5.2
     container_name: bitly_baseline_grafana
     ports:
       - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=password
     depends_on:
       - prometheus
+    networks:
+      - bitly-baseline-network
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: bitly_baseline_node_exporter
+    ports:
+      - "9100:9100"
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.13.0
+    container_name: bitly_baseline_postgres_exporter
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://user:password@postgres:5432/bitly?sslmode=disable
+    depends_on:
+      - postgres
+    networks:
+      - bitly-baseline-network
+
+volumes:
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  bitly-baseline-network:
+    driver: bridge
