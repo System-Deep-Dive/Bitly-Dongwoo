@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: bitly_index_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/bitly
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '512M'
+
+  postgres:
+    image: postgres:13
+    container_name: bitly_index_db
+    environment:
+      POSTGRES_DB: bitly
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '5'
+          memory: '512M'
+
+  prometheus:
+    image: prom/prometheus:v2.37.0
+    container_name: bitly_index_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - app
+      - node-exporter
+      - postgres-exporter
+
+  grafana:
+    image: grafana/grafana:8.5.2
+    container_name: bitly_index_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=password
+    depends_on:
+      - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: bitly_index_node_exporter
+    ports:
+      - "9100:9100"
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.13.0
+    container_name: bitly_index_postgres_exporter
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://user:password@postgres:5432/bitly?sslmode=disable
+    depends_on:
+      - postgres
