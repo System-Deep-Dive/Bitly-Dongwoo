@@ -16,7 +16,7 @@ services:
       resources:
         limits:
           cpus: '5'
-          memory: '512M'
+          memory: '4G'
 
   postgres:
     image: postgres:13
@@ -30,11 +30,20 @@ services:
     volumes:
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
       - postgres_data:/var/lib/postgresql/data
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: '1024M'
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=2GB"         # RAM 8GB의 25%
+      - "-c"
+      - "effective_cache_size=6GB"   # RAM 8GB의 75%
+      - "-c"
+      - "work_mem=128MB"
+      - "-c"
+      - "maintenance_work_mem=512MB"
+      - "-c"
+      - "max_wal_size=2GB"
+      - "-c"
+      - "min_wal_size=1GB"
 
   prometheus:
     image: prom/prometheus:v2.37.0
@@ -48,7 +57,7 @@ services:
       - node-exporter
       - postgres-exporter
     networks:
-      - bitly-baseline-network
+      - bitly-network
 
   grafana:
     image: grafana/grafana:8.5.2
@@ -64,7 +73,7 @@ services:
     depends_on:
       - prometheus
     networks:
-      - bitly-baseline-network
+      - bitly-network
 
   node-exporter:
     image: prom/node-exporter:v1.8.1

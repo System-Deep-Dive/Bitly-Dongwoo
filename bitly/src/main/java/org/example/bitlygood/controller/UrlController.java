@@ -16,12 +16,6 @@ public class UrlController {
 
     private final UrlService urlService;
 
-    @PostMapping("/urls")
-    public ResponseEntity<String> createShortUrl(@RequestBody String originalUrl) {
-        String shortUrl = urlService.createShortUrl(originalUrl);
-        return ResponseEntity.status(HttpStatus.CREATED).body(shortUrl);
-    }
-
     @GetMapping("/base-line/{shortUrl}")
     public void redirectBaseLine(@PathVariable String shortUrl, HttpServletResponse response) throws IOException {
         String originalUrl = urlService.getBaseLineUrl(shortUrl);
