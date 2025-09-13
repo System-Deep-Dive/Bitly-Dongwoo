@@ -27,7 +27,7 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE IF NOT EXISTS url (
     id bigserial PRIMARY KEY,
     original_url text NOT NULL,
-    short_url varchar(10),
+    short_url varchar(10) unique,
     created_at timestamp with time zone DEFAULT now()
 );
 
@@ -43,14 +43,14 @@ CREATE TABLE IF NOT EXISTS indexed_url (
 CREATE INDEX IF NOT EXISTS idx_indexed_short_url ON indexed_url(short_url);
 
 
--- Insert 1,000,000 test URLs into url table (테스트용 소량 데이터)
-INSERT INTO url (id, original_url, short_url)
-SELECT
-    id,
-    'https://example.com/seed-data/' || id::text,
-    base62_encode(id + 1)
-FROM generate_series(0, 999999) AS id
-ON CONFLICT (id) DO NOTHING;
+-- -- Insert 1,000,000 test URLs into url table (테스트용 소량 데이터)
+-- INSERT INTO url (id, original_url, short_url)
+-- SELECT
+--     id,
+--     'https://example.com/seed-data/' || id::text,
+--     base62_encode(id + 1)
+-- FROM generate_series(0, 4999999) AS id
+-- ON CONFLICT (id) DO NOTHING;
 
 -- Insert 1,000,000 test URLs into indexed_url table (테스트용 소량 데이터)
 INSERT INTO indexed_url (id, original_url, short_url)
@@ -58,7 +58,7 @@ SELECT
     id,
     'https://example.com/seed-data/' || id::text,
     base62_encode(id + 1)
-FROM generate_series(0, 999999) AS id
+FROM generate_series(0, 4999999) AS id
 ON CONFLICT (id) DO NOTHING;
 
 
