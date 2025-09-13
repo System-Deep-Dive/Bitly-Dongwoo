@@ -28,6 +28,12 @@ public class UrlController {
         response.sendRedirect(originalUrl);
     }
 
+    @GetMapping("/caching/{shortUrl}")
+    public void redirectCache(@PathVariable String shortUrl, HttpServletResponse response) throws IOException {
+        String originalUrl = urlService.getCachingUrl(shortUrl);
+        response.sendRedirect(originalUrl);
+    }
+
     @GetMapping("/urls/all")
     public ResponseEntity<List<String>> getAllShortUrls() {
         return ResponseEntity.ok(urlService.getAllShortUrls());

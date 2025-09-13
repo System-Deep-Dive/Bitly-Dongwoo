@@ -9,7 +9,6 @@ import { Counter, Rate } from 'k6/metrics';
 const TIME_THRESHOLD = 200; // 성공/실패 기준 시간 (ms)
 const SUCCESS_RATE_THRESHOLD = 0.98; // 성공률 목표 (98%)
 const TOTAL_URLS = 1000000; // DB에 저장된 총 URL 개수
-
 // ====================================================================================
 
 // Base62 인코딩 함수 (서버 로직과 동일하게 유지)
@@ -34,18 +33,19 @@ const success_rate = new Rate('success_rate');
 export const options = {
   scenarios: {
     contacts: {
+
 // 실행기를 'constant-arrival-rate'로 변경합니다.
       executor: 'constant-arrival-rate',
 // 1초(timeUnit)마다 100번(rate)의 요청을 시작합니다. (초당 100 TPS)
-      rate: 5000,
+      rate: 3000,
       timeUnit: '1s',
 // 10분 동안 이 속도를 유지합니다.
-      duration: '10s',
+      duration: '5m',
 // k6가 목표 속도를 맞추기 위해 미리 준비해 둘 VU의 수입니다.
 // rate 값과 비슷하거나 약간 높게 설정하는 것이 일반적입니다.
       preAllocatedVUs: 100,
 // 만약 preAllocatedVUs로 부족할 경우, k6가 추가로 생성할 수 있는 VU의 최대치입니다.
-      maxVUs: 10000,
+      maxVUs: 100000,
     },
   },
   thresholds: {
@@ -61,7 +61,7 @@ export default function () {
 // 500만개 범위 내에서 랜덤 ID를 실시간으로 인코딩하여 요청
   const valueToEncode = Math.floor(Math.random() * TOTAL_URLS) + 1;
   const shortUrl = base62_encode(valueToEncode);
-  const res = http.get(`http://localhost:8080/base-line/${shortUrl}`, {
+  const res = http.get(`http://localhost:8080/caching/${shortUrl}`, {
     redirects: 0,
     tags: {
       name: '/{shortUrl}', // 모든 요청을 하나의 대표 이름으로 그룹화

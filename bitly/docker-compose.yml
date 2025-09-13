@@ -17,6 +17,8 @@ services:
         limits:
           cpus: '5'
           memory: '4G'
+    networks:
+      - bitly-network
 
   postgres:
     image: postgres:13
@@ -30,6 +32,8 @@ services:
     volumes:
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bitly-network
     command:
       - "postgres"
       - "-c"
@@ -44,6 +48,19 @@ services:
       - "max_wal_size=2GB"
       - "-c"
       - "min_wal_size=1GB"
+
+  redis:
+    image: "redis:7-alpine"
+    container_name: bitly_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lfu
+    deploy:
+      resources:
+        limits:
+          memory: '100M'
+    networks:
+      - bitly-network
 
   prometheus:
     image: prom/prometheus:v2.37.0
@@ -90,6 +107,18 @@ services:
       - DATA_SOURCE_NAME=postgresql://user:password@postgres:5432/bitly?sslmode=disable
     depends_on:
       - postgres
+    networks:
+      - bitly-network
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.59.0
+    container_name: bitly_redis_exporter
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://bitly_redis:6379
+    depends_on:
+      - redis
     networks:
       - bitly-network
 
