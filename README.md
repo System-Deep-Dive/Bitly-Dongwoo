@@ -39,10 +39,6 @@
     *   인기 있는 URL이 반복적으로 요청되는 '핫스팟' 데이터 환경을 가정하여, `LRU(Least Recently Used)`와 `LFU(Least Frequently Used)` 캐시 정책의 효율을 비교했습니다. 정상 부하(5,000 TPS) 환경에서 **LFU가 LRU보다 약 14배 빠른 p95 응답 속도**를 보여주며, Skewed 워크로드에 더 적합함을 입증했습니다.
     *   [캐시 정책(LRU vs. LFU) 상세 비교 결과 보기](./bitly/docs/LFU-LRU-cache-results.md)
 
-*   **2단계: 캐시 정책(LRU vs. LFU) 비교**
-    *   인기 있는 URL이 반복적으로 요청되는 '핫스팟' 데이터 환경을 가정하여, `LRU(Least Recently Used)`와 `LFU(Least Frequently Used)` 캐시 정책의 효율을 비교했습니다. 정상 부하(5,000 TPS) 환경에서 **LFU가 LRU보다 약 14배 빠른 p95 응답 속도**를 보여주며, Skewed 워크로드에 더 적합함을 입증했습니다.
-    *   [캐시 정책(LRU vs. LFU) 상세 비교 결과 보기](./bitly/docs/LFU-LRU-cache-results.md)
-
 ## 6. 기존 솔루션 (Existing Solution)
 * 현 시스템 설명: 현재 시스템은 MySQL과 같은 관계형 데이터베이스를 사용하여 모든 단축 URL과 원본 URL 정보를 저장합니다. 리다이렉션 요청이 들어오면, 애플리케이션 서버가 데이터베이스에 단축 코드를 쿼리하여 원본 URL을 찾습니다. 인덱스가 최적화되지 않아, 데이터베이스는 전체 테이블을 순차적으로 탐색하며 값을 찾습니다.
 * 사용자 시나리오: 사용자가 단축 URL을 클릭하면, 서버는 데이터베이스 전체를 스캔하는 느린 쿼리를 실행하고, 이로 인해 사용자는 리다이렉트되기까지 상당한 시간을 기다려야 합니다.
